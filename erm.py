@@ -127,6 +127,8 @@ class Bot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setup_status: bool = False
+        self.reminders_enabled: bool = True  # Default fallback initialization
+        self.actions_enabled: bool = True    # Default fallback initialization
         self._member_cache = {}
         self._guild_cache = {}
         self._cache_timeout = 300
@@ -156,9 +158,8 @@ class Bot(commands.AutoShardedBot):
         self.view_state_manager: ViewStateManager = ViewStateManager()
 
         if not self.setup_status:
-            # await bot.load_extension('utils.routes')
             logging.info(
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━���━━━━━━\n\n{} is online!".format(
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n{} is online!".format(
                     self.user.name
                 )
             )
@@ -173,8 +174,6 @@ class Bot(commands.AutoShardedBot):
                 self.db = self.mongo["erm"]
             else:
                 raise Exception("Invalid environment")
-            
-
 
             self.panel_db = self.mongo["UserIdentity"]
             self.priority_settings = Document(self.panel_db, "PrioritySettings")
@@ -282,20 +281,14 @@ class Bot(commands.AutoShardedBot):
             bot.error_list = []
             logging.info("Connected to MongoDB!")
 
-            # await bot.load_extension("jishaku")
             await bot.load_extension("utils.hot_reload")
-            # await bot.load_extension('utils.server')
 
             if not bot.is_synced:  # check if slash commands have been synced
                 bot.tree.copy_global_to(guild=discord.Object(id=987798554972143728))
             if environment == "DEVELOPMENT":
                 pass
-                # await bot.tree.sync(guild=discord.Object(id=987798554972143728))
             elif environment == "CUSTOM":
                 await self.tree.sync()
-                # Prevent auto syncing
-                # await bot.tree.sync()
-                # guild specific: leave blank if global (global registration can take 1-24 hours)
             bot.is_synced = True
 
             # we do this so the bot can get a cache of things before we spam discord with fetches
